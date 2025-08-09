@@ -17,6 +17,13 @@ export class EmployeePage {
   readonly paginationInfo: Locator;
   readonly nextPageButton: Locator;
   readonly previousPageButton: Locator;
+  
+  // Settings menu elements
+  readonly settingsMenuButton: Locator;
+  readonly settingsMenu: Locator;
+  readonly systemIdColumnOption: Locator;
+  readonly systemIdColumnHeader: Locator;
+  readonly systemIdColumnCells: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -45,6 +52,13 @@ export class EmployeePage {
     this.paginationInfo = page.locator('nav[role="navigation"][aria-label="pagination"]');
     this.nextPageButton = page.locator('a:has-text("Next")');
     this.previousPageButton = page.locator('a:has-text("Previous")');
+    
+    // Settings menu elements - the settings button with dropdown menu trigger
+    this.settingsMenuButton = page.locator('button[data-slot="dropdown-menu-trigger"]').first();
+    this.settingsMenu = page.locator('[data-slot="dropdown-menu-content"], [role="menu"]');
+    this.systemIdColumnOption = page.locator('[role="menuitem"]:has-text("System ID"), [data-value="system_id"], button:has-text("System ID")');
+    this.systemIdColumnHeader = page.locator('th[data-slot="table-head"]:has-text("System ID")');
+    this.systemIdColumnCells = page.locator('tbody td[data-slot="table-cell"]:nth-child(2)');
   }
 
   async waitForPageToLoad() {
@@ -151,5 +165,64 @@ export class EmployeePage {
       trade: trade?.trim() || '',
       status: status?.trim() || ''
     };
+  }
+
+  // Settings menu methods using best practices
+  async clickSettingsButton() {
+    await expect(this.settingsMenuButton).toBeVisible({ timeout: 5000 });
+    await this.settingsMenuButton.click();
+  }
+
+  async waitForSettingsMenu() {
+    await expect(this.settingsMenu).toBeVisible({ timeout: 10000 });
+  }
+
+  async toggleSystemIdColumn() {
+    // Use getByText with exact match for reliable element selection
+    const systemIdOption = this.settingsMenu.getByText('System ID', { exact: true });
+    await expect(systemIdOption).toBeVisible({ timeout: 5000 });
+    await systemIdOption.click();
+  }
+
+  async closeSettingsMenu() {
+    // Use keyboard escape for reliable menu closing
+    await this.page.keyboard.press('Escape');
+    await expect(this.settingsMenu).toBeHidden({ timeout: 3000 });
+  }
+
+  async verifySystemIdColumnVisible() {
+    await expect(this.systemIdColumnHeader).toBeVisible({ timeout: 5000 });
+  }
+
+  async verifySystemIdColumnHidden() {
+    await expect(this.systemIdColumnHeader).toBeHidden({ timeout: 5000 });
+  }
+
+  async getSettingsMenuOptions(): Promise<string[]> {
+    await this.waitForSettingsMenu();
+    
+    // Get all text content from the settings menu and extract column names
+    const menuText = await this.settingsMenu.textContent();
+    if (!menuText) return [];
+    
+    // Extract column names from the menu text
+    const columnNames = ['Name', 'System ID', 'Employee ID', 'Employee Type', 'Phone Number', 'Trade', 'Status'];
+    const foundOptions = columnNames.filter(column => menuText.includes(column));
+    
+    return foundOptions;
+  }
+
+  async getTableHeaders(): Promise<string[]> {
+    const headers = await this.tableHeaders.all();
+    const headerTexts: string[] = [];
+    
+    for (const header of headers) {
+      const text = await header.textContent();
+      if (text) {
+        headerTexts.push(text.trim());
+      }
+    }
+    
+    return headerTexts;
   }
 }
