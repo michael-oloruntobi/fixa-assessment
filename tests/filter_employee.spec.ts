@@ -14,7 +14,7 @@ test.describe('Employee Management', () => {
     // Login before each test
     await loginPage.goto();
     await loginPage.waitForPageToLoad();
-    await loginPage.login(process.env.USERNAME as string, process.env.PASSWORD as string);
+    await loginPage.login(process.env.USER_EMAIL as string, process.env.PASSWORD as string);
     await loginPage.waitForLoginToComplete();
     await page.goto(testUrls.employeeManagement);
     await employeePage.waitForPageToLoad();
