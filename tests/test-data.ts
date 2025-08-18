@@ -1,11 +1,3 @@
-export const testCredentials = {
-  validUser: {
-    email: 'tafara@fixarwanda.com',
-    password: '0784526338Mit2@'
-  },
-
-};
-
 export const testUrls = {
   login: '/login',
   forgotPassword: '/forgot-password',
